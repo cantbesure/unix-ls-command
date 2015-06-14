@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+//record the total arg path
 int argcnt;
 char ** dir_name_list=NULL;
 
@@ -34,13 +35,14 @@ typedef struct lscmd
     int u;                    //   -u   access
     int R;                    //   -R   //
     int one;                  //   -1   one thing perline
-    int show_format;
 } lscmd;
 
 
 
 typedef struct lsinfo
 {
+    char  name[200];
+    char * type;
     int link_num; //
     long owner_id;
     long grp_id;
@@ -50,8 +52,6 @@ typedef struct lsinfo
     char* owner_name;
     char* grp_name;
     char mode[11];
-    char * name;
-    char * type;
     long inode;
     struct timespec mtime;//modify
     struct timespec ctime;//change
@@ -161,6 +161,7 @@ char *gid_to_name(gid_t gid)
         return grp_ptr->gr_name;
 }
 
+//for "-R" 
 void find_dir(char * dir_name)
 {
     DIR *dir_ptr;

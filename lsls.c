@@ -1,3 +1,7 @@
+/***********************
+* unix-command-ls
+* 12281113 李铄
+***********************/
 #include "lsls.h"
 
 
@@ -15,11 +19,10 @@ int main(int argc,const char * argv[])
     return 0;
 }
 
-
+//make lscmd 
 lscmd make_command(int argc,const char  *argv[])
 {
-    lscmd cmd= {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    cmd.show_format=1;
+    lscmd cmd= {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     cmd.k=1;
     cmd.A=1;
     if (argc==1)
@@ -34,7 +37,7 @@ lscmd make_command(int argc,const char  *argv[])
         }
         const char * option=argv[cnt];
         int len=strlen(option);
-        printf("%d\n",len);
+        //printf("%d\n",len);
         int i=0;
         for (i=1; i<len; i++)
         {
@@ -111,6 +114,7 @@ lscmd make_command(int argc,const char  *argv[])
 
 }
 
+//make lsinfo
 lsinfo* make_info(char * file_name, struct stat * info_p)
 {
     lsinfo *info;
@@ -148,12 +152,14 @@ lsinfo* make_info(char * file_name, struct stat * info_p)
 //    printf("%.12s",4+ctime(&info_p->st_mtime));//modify
 //    printf("%.12s",4+ctime(&info_p->st_ctime));//change time for "-c"
 
-    info->name=file_name;
+    strcpy(info->name,file_name);
 
 
 
     return info;
 }
+
+//insert elements according to different sorting
 void insert_element(lsinfo ** dir_file_list,lsinfo * info_p,int len)
 {
     int index=-1,i;
@@ -201,11 +207,15 @@ void insert_element(lsinfo ** dir_file_list,lsinfo * info_p,int len)
                 break;
             }
         }
+    else if (cmd.f)//for "-f"
+    {
+        index=len;
+    }
     else//alpha
     {
         for (i=0; i<len; i++)
         {
-            if (strcmp(dir_file_list[i]->name,info_p->name)>0)
+            if (strcasecmp(dir_file_list[i]->name,info_p->name)>0)
             {
                 index=i;
                 break;
@@ -233,20 +243,26 @@ void insert_element(lsinfo ** dir_file_list,lsinfo * info_p,int len)
 
 
 }
+
+//make the file list
 void make_list(int argc,const char  *argv[])
 {
     DIR *dir_ptr;
     struct dirent *dirent_p;
     int i;
     argcnt=0;
+    //for "-R"
     if (cmd.R&&cmd.d==0)
     {
+
         for (i=1; i<argc; i++)
             if (argv[i][0]!='-')
                 find_dir(argv[i]);
-        printf("!%d\n",argcnt);
-        for (i=0; i<argcnt; i++)
-            printf("%s\n",dir_name_list[i]);
+        //printf("!%d\n",argcnt);
+        if (argcnt==0)
+            find_dir(".");
+//        for (i=0; i<argcnt; i++)
+//            printf("%s\n",dir_name_list[i]);
         dir_file_list=(lsinfo***)malloc(argcnt*sizeof(lsinfo**));
         dir_len=(int*)malloc(argcnt*sizeof(int));
     }
@@ -375,6 +391,7 @@ void make_list(int argc,const char  *argv[])
 
     }
 }
+
 //show long file info
 void show_l_file(lsinfo* info)
 {
@@ -397,18 +414,21 @@ void show_l_file(lsinfo* info)
     else
         printf("%4ld ",info->size_byte);
 
-//    if (cmd.c)
-//        printf("%.12s",4+ctime(&info->ctime.tv_sec));//change time for "-c"
-//    else if (cmd.u)
-//        printf("%.12s",4+ctime(&info->atime.tv_sec));//change time for "-u"
-//    else
-//        printf("%.12s",4+ctime(&info->mtime.tv_sec));
 
+
+    if (cmd.c)
+        printf("%.12s ",4+ctime(&info->ctime.tv_sec));//change time for "-c"
+    else if (cmd.u)
+        printf("%.12s ",4+ctime(&info->atime.tv_sec));//change time for "-u"
+    else
+        printf("%.12s " ,4+ctime(&info->mtime.tv_sec));
+
+    //printf("\n");
 
     if (cmd.F)
-        printf(" %s%s\n",info->name,info->type);//for "F"
+        printf("%s%s\n",info->name,info->type);//for "F"
     else
-        printf(" %s\n",info->name);
+        printf("%s\n",info->name);
 }
 
 //show short file info
@@ -421,9 +441,9 @@ void show_file(lsinfo* info)
         if (cmd.s) printf("%ld ",info->blk_cnt);//for "-s"
 
         if (cmd.F)
-            printf(" %s%s\n",info->name,info->type);//for "F"
+            printf("%s%s\n",info->name,info->type);//for "F"
         else
-            printf(" %s\n",info->name);
+            printf("%s\n",info->name);
     }
     else
     {
@@ -432,19 +452,20 @@ void show_file(lsinfo* info)
         if (cmd.s) printf("%ld ",info->blk_cnt);//for "-s"
 
         if (cmd.F)
-            printf(" %s%s\n",info->name,info->type);//for "F"
+            printf("%s%s\t",info->name,info->type);//for "F"
         else
-            printf(" %s\n",info->name);
+            printf("%s\t",info->name);
     }
 }
-//
+
+//for "-1" "-x"
 void show_normal()
 {
     int i,j;
     if (cmd.r)
         for (i=0; i<=(argcnt==0?0:argcnt-1); i++)
         {
-            if (argcnt!=0&&argcnt!=1)
+            if ((argcnt!=0&&argcnt!=1)||cmd.R)
                 printf("%s:\n",dir_name_list[i]);
             for (j=dir_len[i]-1; j>=0; j--)
             {
@@ -453,20 +474,35 @@ void show_normal()
             }
 
         }
-    else
+    else if (cmd.x)
         for (i=(argcnt==0?0:argcnt-1); i>=0; i--)
         {
-            if (argcnt!=0&&argcnt!=1)
+            if ((argcnt!=0&&argcnt!=1)||cmd.R)
                 printf("%s:\n",dir_name_list[i]);
             for (j=0; j<dir_len[i]; j++)
             {
                 lsinfo* info=dir_file_list[i][j];
                 show_file(info);
             }
+            printf("\n");
+
+        }
+    else 
+	for (i=(argcnt==0?0:argcnt-1); i>=0; i--)
+        {
+            if ((argcnt!=0&&argcnt!=1)||cmd.R)
+                printf("%s:\n",dir_name_list[i]);
+            for (j=0; j<dir_len[i]; j++)
+            {
+                lsinfo* info=dir_file_list[i][j];
+                show_file(info);
+            }
+            printf("\n");
 
         }
 
 }
+
 //for "-l"
 void show_list()
 {
@@ -474,7 +510,7 @@ void show_list()
     if (cmd.r)
         for (i=0; i<=(argcnt==0?0:argcnt-1); i++)
         {
-            if (argcnt!=0&&argcnt!=1)
+            if ((argcnt!=0&&argcnt!=1)||cmd.R)
                 printf("%s:\n",dir_name_list[i]);
             for (j=dir_len[i]-1; j>=0; j--)
             {
@@ -486,7 +522,7 @@ void show_list()
     else
         for (i=(argcnt==0?0:argcnt-1); i>=0; i--)
         {
-            if (argcnt!=0&&argcnt!=1)
+            if ((argcnt!=0&&argcnt!=1)||cmd.R)
                 printf("%s:\n",dir_name_list[i]);
             for (j=0; j<dir_len[i]; j++)
             {
