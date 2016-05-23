@@ -2,7 +2,7 @@
 ls command with most of the args
 
 包含：lsls.c lsls.h
-第一个ls代表（Li Shuo）李铄12281113
+第一个ls代表（Li Shuo）
 第二个ls代表命令
 
 使用git进行版本控制，虽然只commit了一次
